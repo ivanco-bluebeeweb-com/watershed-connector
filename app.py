@@ -34,3 +34,17 @@ ext = Extension(
 )
 
 chat = ChatExtension(ext)
+
+
+@ext.health_check
+async def health_check(ctx) -> dict:
+    """Report whether a Watershed API-key connection is configured."""
+    raw = await ctx.secrets.get("watershed_connections")
+    return {
+        "healthy": bool(raw),
+        "detail": (
+            "Watershed connection configured."
+            if raw
+            else "Not connected yet — run connect_watershed."
+        ),
+    }
