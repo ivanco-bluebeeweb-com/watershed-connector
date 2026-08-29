@@ -1,0 +1,14 @@
+{
+  "connect_watershed": 0,
+  "disconnect_watershed": 0,
+  "list_connections": 0,
+  "list_footprints": 8,
+  "get_footprint": 8,
+  "list_datasets": 8,
+  "list_activity_data_records": 8,
+  "list_supplier_data_requests": 8,
+  "list_reports": 8,
+  "create_activity_data_record": 16,
+  "update_activity_data_record": 16,
+  "get_emissions_overview_report": 40
+}
