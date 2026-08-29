@@ -1,0 +1,689 @@
+{
+  "manifest_schema_version": 3,
+  "sdk_version": "5.13.0",
+  "app_id": "watershed-connector",
+  "version": "0.1.0",
+  "name": "Watershed",
+  "description": "Connect your own Watershed climate/ESG account (bring your own API key from Organization Settings) to read computed emissions footprints, datasets and activity data records, supplier data requests, and climate reports (GHG Protocol/CDP/TCFD-aligned), plus create and update activity data records (the core way to feed Watershed new emissions activity data), and a value-add emissions overview report.",
+  "icon": "icon.svg",
+  "actions_explicit": true,
+  "system": false,
+  "capabilities": [
+    "watershed:read",
+    "watershed:write"
+  ],
+  "tools": [
+    {
+      "name": "connect_watershed",
+      "description": "Connect your own Watershed account by saving your API key (from Organization Settings > API), after checking it actually works.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:connection"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "api_key": {
+            "default": "",
+            "description": "Your Watershed API key (from Organization Settings > API).",
+            "title": "Api Key",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "description": "Optional friendly label for this connection, e.g. 'Acme Inc Watershed'.",
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "title": "ConnectWatershedParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "title": "ProviderConnection",
+        "type": "object"
+      },
+      "event": "watershed-connector.connect_watershed",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_connections",
+      "description": "List the connected Watershed accounts.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "description": "Explicit empty params model -- V17 disallows untyped handlers.",
+        "properties": {},
+        "title": "NoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "ProviderConnection": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "label": {
+                "default": "",
+                "title": "Label",
+                "type": "string"
+              }
+            },
+            "title": "ProviderConnection",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "connections": {
+            "items": {
+              "$ref": "#/$defs/ProviderConnection"
+            },
+            "title": "Connections",
+            "type": "array"
+          }
+        },
+        "title": "ProviderConnectionList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "disconnect_watershed",
+      "description": "Disconnect a Watershed account: deletes the saved API key. Nothing in Watershed itself is changed.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:connection"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "description": "Which connection to disconnect (see list_connections).",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id"
+        ],
+        "title": "DisconnectWatershedParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "deleted": {
+            "default": false,
+            "title": "Deleted",
+            "type": "boolean"
+          },
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "title": "DeleteResult",
+        "type": "object"
+      },
+      "event": "watershed-connector.disconnect_watershed",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_footprints",
+      "description": "List computed emissions footprints on the connected Watershed account.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum footprints to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListFootprintsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "footprints": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Footprints",
+            "type": "array"
+          }
+        },
+        "title": "FootprintList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "get_footprint",
+      "description": "Read one computed emissions footprint in full by its Watershed footprint id.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "footprint_id": {
+            "description": "The Watershed footprint id.",
+            "title": "Footprint Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "footprint_id"
+        ],
+        "title": "GetFootprintParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "footprint": {
+            "additionalProperties": true,
+            "title": "Footprint",
+            "type": "object"
+          }
+        },
+        "title": "FootprintDetail",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_datasets",
+      "description": "List datasets (activity data collections) configured on the connected Watershed account.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum datasets to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListDatasetsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "datasets": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Datasets",
+            "type": "array"
+          }
+        },
+        "title": "DatasetList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_activity_data_records",
+      "description": "List activity data records (raw emissions activity data, e.g. utility bills, travel, spend) inside one Watershed dataset.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "dataset_id": {
+            "description": "The Watershed dataset id to list activity data records from.",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum records to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dataset_id"
+        ],
+        "title": "ListActivityDataRecordsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "dataset_id": {
+            "default": "",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "records": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "title": "ActivityDataRecordList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_supplier_data_requests",
+      "description": "List supplier data requests (Watershed's supplier engagement campaign items) on the connected account.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum supplier data requests to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListSupplierDataRequestsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "requests": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Requests",
+            "type": "array"
+          }
+        },
+        "title": "SupplierDataRequestList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "list_reports",
+      "description": "List climate/ESG reports (GHG Protocol/CDP/TCFD-aligned) on the connected Watershed account.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum reports to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListReportsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "reports": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Reports",
+            "type": "array"
+          }
+        },
+        "title": "ReportList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "create_activity_data_record",
+      "description": "Create a new activity data record (e.g. a utility bill, travel record, or spend-based estimate) inside a Watershed dataset -- Watershed's core way to ingest new emissions activity data.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:resource"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "dataset_id": {
+            "description": "The Watershed dataset id to add this activity data record to.",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "fields_json": {
+            "description": "JSON object of the record's field values, matching the dataset's schema.",
+            "title": "Fields Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset_id",
+          "fields_json"
+        ],
+        "title": "CreateActivityDataRecordParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "dataset_id": {
+            "default": "",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "event": "watershed-connector.create_activity_data_record",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "update_activity_data_record",
+      "description": "Update selected field values of an existing activity data record. Only the fields in fields_json change.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "update:resource"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "dataset_id": {
+            "description": "The Watershed dataset id the record belongs to.",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "record_id": {
+            "description": "The activity data record id to update.",
+            "title": "Record Id",
+            "type": "string"
+          },
+          "fields_json": {
+            "description": "JSON object of the field values to change. Only given fields change.",
+            "title": "Fields Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset_id",
+          "record_id",
+          "fields_json"
+        ],
+        "title": "UpdateActivityDataRecordParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "dataset_id": {
+            "default": "",
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "event": "watershed-connector.update_activity_data_record",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    },
+    {
+      "name": "get_emissions_overview_report",
+      "description": "Value-add report: one-glance emissions overview across the connected Watershed account's footprints -- total tCO2e and a breakdown by GHG Protocol scope.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Watershed account to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "title": "GetEmissionsOverviewParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "footprint_count": {
+            "default": 0,
+            "title": "Footprint Count",
+            "type": "integer"
+          },
+          "total_tco2e": {
+            "default": 0.0,
+            "title": "Total Tco2E",
+            "type": "number"
+          },
+          "by_scope": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "By Scope",
+            "type": "object"
+          }
+        },
+        "title": "EmissionsOverviewReport",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "tool_watershed-connector_chat"
+    }
+  ],
+  "signals": [],
+  "schedules": [],
+  "required_scopes": [],
+  "icon_size_bytes": 677,
+  "panels": [
+    {
+      "panel_id": "watershed_connect",
+      "slot": "left",
+      "title": "Watershed",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    },
+    {
+      "panel_id": "watershed_connect_help",
+      "slot": "overlay",
+      "title": "How do I set this up?",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    },
+    {
+      "panel_id": "watershed_settings",
+      "slot": "center",
+      "title": "",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    }
+  ]
+}
