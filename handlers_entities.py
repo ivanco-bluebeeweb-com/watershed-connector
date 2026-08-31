@@ -37,7 +37,7 @@ async def list_footprints(ctx, params: ListFootprintsParams) -> ActionResult:
     data = await ws.request(ctx, conn, "GET", "/v1/footprints", params={"limit": params.limit}, action="list footprints")
     rows = data.get("footprints", data) if isinstance(data, dict) else data
     rows = rows if isinstance(rows, list) else []
-    return ActionResult.ok(FootprintList(count=len(rows), footprints=rows))
+    return ActionResult.success(FootprintList(count=len(rows), footprints=rows)), summary="Footprints listed."
 
 
 @chat.function(
@@ -51,7 +51,7 @@ async def get_footprint(ctx, params: GetFootprintParams) -> ActionResult:
     if not conn:
         return err
     data = await ws.request(ctx, conn, "GET", f"/v1/footprints/{params.footprint_id}", action="get footprint")
-    return ActionResult.ok(FootprintDetail(footprint=data if isinstance(data, dict) else {}))
+    return ActionResult.success(FootprintDetail(footprint=data if isinstance(data, dict) else {})), summary="Footprint retrieved."
 
 
 @chat.function(
@@ -67,7 +67,7 @@ async def list_datasets(ctx, params: ListDatasetsParams) -> ActionResult:
     data = await ws.request(ctx, conn, "GET", "/v1/datasets", params={"limit": params.limit}, action="list datasets")
     rows = data.get("datasets", data) if isinstance(data, dict) else data
     rows = rows if isinstance(rows, list) else []
-    return ActionResult.ok(DatasetList(count=len(rows), datasets=rows))
+    return ActionResult.success(DatasetList(count=len(rows), datasets=rows)), summary="Datasets listed."
 
 
 @chat.function(
@@ -87,7 +87,7 @@ async def list_activity_data_records(ctx, params: ListActivityDataRecordsParams)
     )
     rows = data.get("records", data) if isinstance(data, dict) else data
     rows = rows if isinstance(rows, list) else []
-    return ActionResult.ok(ActivityDataRecordList(dataset_id=params.dataset_id, count=len(rows), records=rows))
+    return ActionResult.success(ActivityDataRecordList(dataset_id=params.dataset_id, count=len(rows), records=rows)), summary="Activity data records listed."
 
 
 @chat.function(
@@ -103,7 +103,7 @@ async def list_supplier_data_requests(ctx, params: ListSupplierDataRequestsParam
     data = await ws.request(ctx, conn, "GET", "/v1/supplier_data_requests", params={"limit": params.limit}, action="list supplier data requests")
     rows = data.get("requests", data) if isinstance(data, dict) else data
     rows = rows if isinstance(rows, list) else []
-    return ActionResult.ok(SupplierDataRequestList(count=len(rows), requests=rows))
+    return ActionResult.success(SupplierDataRequestList(count=len(rows), requests=rows)), summary="Supplier data requests listed."
 
 
 @chat.function(
@@ -119,7 +119,7 @@ async def list_reports(ctx, params: ListReportsParams) -> ActionResult:
     data = await ws.request(ctx, conn, "GET", "/v1/reports", params={"limit": params.limit}, action="list reports")
     rows = data.get("reports", data) if isinstance(data, dict) else data
     rows = rows if isinstance(rows, list) else []
-    return ActionResult.ok(ReportList(count=len(rows), reports=rows))
+    return ActionResult.success(ReportList(count=len(rows), reports=rows)), summary="Reports listed."
 
 
 @chat.function(
@@ -143,7 +143,7 @@ async def create_activity_data_record(ctx, params: CreateActivityDataRecordParam
         json_body=fields, action="create activity data record",
     )
     rid = data.get("id", "") if isinstance(data, dict) else ""
-    return ActionResult.ok(WriteResult(id=rid, dataset_id=params.dataset_id, status="created"))
+    return ActionResult.success(WriteResult(id=rid, dataset_id=params.dataset_id, status="created")), summary="Activity data record created."
 
 
 @chat.function(
@@ -165,4 +165,4 @@ async def update_activity_data_record(ctx, params: UpdateActivityDataRecordParam
         ctx, conn, "PATCH", f"/v1/datasets/{params.dataset_id}/records/{params.record_id}",
         json_body=fields, action="update activity data record",
     )
-    return ActionResult.ok(WriteResult(id=params.record_id, dataset_id=params.dataset_id, status="updated"))
+    return ActionResult.success(WriteResult(id=params.record_id, dataset_id=params.dataset_id, status="updated")), summary="Activity data record updated."

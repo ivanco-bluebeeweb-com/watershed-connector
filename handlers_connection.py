@@ -75,7 +75,7 @@ async def connect_watershed(ctx, params: ConnectWatershedParams) -> ActionResult
     conn_id = str(uuid.uuid4())
     connections.append({"id": conn_id, "label": params.label, "api_key": params.api_key})
     await _save_connections(ctx, connections)
-    return ActionResult.ok(ProviderConnection(id=conn_id, label=params.label or "Watershed connection"))
+    return ActionResult.success(ProviderConnection(id=conn_id, label=params.label or "Watershed connection")), summary="Watershed connected."
 
 
 @chat.function(
@@ -87,7 +87,7 @@ async def list_connections(ctx, params: NoParams) -> ActionResult:
     """List saved Watershed connections."""
     connections = await _load_connections(ctx)
     rows = [ProviderConnection(id=c.get("id", ""), label=c.get("label") or "Watershed connection") for c in connections]
-    return ActionResult.ok(ProviderConnectionList(connections=rows))
+    return ActionResult.success(ProviderConnectionList(connections=rows)), summary="Connections listed."
 
 
 @chat.function(
@@ -103,4 +103,4 @@ async def disconnect_watershed(ctx, params: DisconnectWatershedParams) -> Action
     if len(remaining) == len(connections):
         return ActionResult.error("That Watershed connection was not found.", code="WATERSHED_NOT_CONNECTED")
     await _save_connections(ctx, remaining)
-    return ActionResult.ok(DeleteResult(deleted=True, id=params.connection_id))
+    return ActionResult.success(DeleteResult(deleted=True, id=params.connection_id)), summary="Watershed disconnected."

@@ -38,8 +38,8 @@ async def get_emissions_overview_report(ctx, params: GetEmissionsOverviewParams)
         total += tco2e
         scope = r.get("scope") or r.get("ghgScope") or "Unspecified"
         by_scope[scope] = by_scope.get(scope, 0.0) + tco2e
-    return ActionResult.ok(EmissionsOverviewReport(
+    return ActionResult.success(EmissionsOverviewReport(
         footprint_count=len(rows),
         total_tco2e=round(total, 3),
         by_scope={k: round(v, 3) for k, v in by_scope.items()},
-    ))
+    )), summary="Emissions overview report retrieved."
