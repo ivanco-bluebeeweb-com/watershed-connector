@@ -42,4 +42,4 @@ async def get_emissions_overview_report(ctx, params: GetEmissionsOverviewParams)
         footprint_count=len(rows),
         total_tco2e=round(total, 3),
         by_scope={k: round(v, 3) for k, v in by_scope.items()},
-    )), summary="Emissions overview report retrieved."
+    ), summary="Emissions overview report retrieved.")
